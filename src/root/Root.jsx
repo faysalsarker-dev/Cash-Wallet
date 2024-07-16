@@ -5,7 +5,7 @@ const Root = () => {
     return (
         <>
           <ComplexNavbar/> 
-          <Outlet/>
+          <div className="container max-w-6xl mx-auto"><Outlet/></div>
         </>
     );
 };

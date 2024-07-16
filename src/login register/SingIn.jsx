@@ -14,7 +14,7 @@ export default function SignIn() {
   const [imgC, setImgC] = useState(false);
   const [err, setErr] = useState(false);
 
-  const { createUser } = useAuth();
+  const { createUser,setUser,user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -28,30 +28,41 @@ export default function SignIn() {
       if (imgC) {
         const formData = new FormData();
         formData.append("image", img);
-
+  
         const response = await axios.post(
           `https://api.imgbb.com/1/upload?key=282254e4f4a6394581df08e10d438979`,
           formData
         );
         imgData = response.data;
       }
-
+  
       const info = {
         name: data.name,
-        email: data.email, 
+        email: data.email,
         password: data.password,
         image: imgData?.data.display_url,
       };
-
+  const saving ={
+    name: data.name,
+    email: data.email,
+    image: imgData?.data.display_url,
+  }
+      
       const result = await createUser(info);
-      console.log(result);
+  
+      
+      if (result) {
+        
+        setUser(info);
+  
+      
+        localStorage.setItem('user', JSON.stringify(saving));
 
-      if (result.data.insertedId) {
-        // Save user info to localStorage
-        localStorage.setItem('user', JSON.stringify(info));
-
+        // Display success message
         toast.success("Registration successful!");
-        navigate("/home");
+  
+        // Navigate to the desired page
+        navigate("/");
       }
     } catch (error) {
       console.error("Error during registration:", error);
@@ -222,14 +233,12 @@ export default function SignIn() {
           <Typography color="gray" className="mt-4 text-center font-normal">
             Already have an account?
             <Link to="/login" className="font-medium text-primary">
-              {" "}
+            
               Log In
             </Link>
           </Typography>
 
-          <div className="flex justify-center mt-4">
-            <h2 className="text-secondary">OR</h2>
-          </div>
+          
         </form>
       </Card>
     </div>
