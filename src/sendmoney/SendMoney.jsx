@@ -4,16 +4,19 @@ import { Input, Button } from '@material-tailwind/react';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import useAxiosSecure from './../hook/useAxiosSecure';
+import { useState } from 'react';
+import useAuth from './../hook/useAuth';
 
 const SendMoney = () => {
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
-const axiosSecure = useAxiosSecure()
+    const axiosSecure = useAxiosSecure();
+    const { user } = useAuth();
+
     const { mutateAsync } = useMutation({
-        mutationFn: async ( {email, amount } ) => {
-            console.log(amount);
+        mutationFn: async ({ email, amount, userEmail,password }) => {
+            const info = { amount, userEmail,password };
             try {
-               
-                const { data } = await axiosSecure.patch(`/send-money/${email}`, {amount});
+                const { data } = await axiosSecure.patch(`/send-money/${email}`, info);
                 return data;
             } catch (error) {
                 throw new Error(error.response?.data?.message || 'Something went wrong');
@@ -22,10 +25,10 @@ const axiosSecure = useAxiosSecure()
         onSuccess: (data) => {
             Swal.fire({
                 title: 'Money Sent!',
-                text: `You have successfully sent $${data.amount} to ${data.recipientEmail}.`,
+                text: `You have successfully sent $${data.recipient.amount} to ${data.recipient.email}. for ${data.charge} charge`,
                 icon: 'success',
             });
-            // reset();
+            reset();
         },
         onError: (error) => {
             Swal.fire({
@@ -37,9 +40,9 @@ const axiosSecure = useAxiosSecure()
     });
 
     const onSubmit = (formData) => {
-        
+        const { email, amount ,password} = formData;
         Swal.fire({
-            title: `Are you sure?`,
+            title: 'Are you sure?',
             text: 'You want to send money to the recipient?',
             icon: 'question',
             showCancelButton: true,
@@ -53,7 +56,7 @@ const axiosSecure = useAxiosSecure()
             buttonsStyling: false,
         }).then((result) => {
             if (result.isConfirmed) {
-                mutateAsync({ ...formData });
+                mutateAsync({ email, amount, userEmail: user.email ,password});
             }
         });
     };
@@ -68,7 +71,7 @@ const axiosSecure = useAxiosSecure()
                             <Input
                                 type="number"
                                 color="indigo"
-                                size="lx"
+                                size="lg"
                                 outline
                                 label="Amount"
                                 placeholder="Enter amount"
@@ -92,7 +95,7 @@ const axiosSecure = useAxiosSecure()
                                 placeholder="Enter recipient's email or number"
                                 {...register('email', { required: 'Recipient email/number is required' })}
                             />
-                            {errors.recipientEmail && <span className="text-red-500">{errors.recipientEmail.message}</span>}
+                            {errors.email && <span className="text-red-500">{errors.email.message}</span>}
                         </div>
                         <div>
                             <Input
